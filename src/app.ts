@@ -10,6 +10,7 @@ const WEATHER_API_KEY = process.env.OPM_API_KEY || '';
 
 const getLocationUrl = (city: string, country?: string): string => `https://nominatim.openstreetmap.org/search?city=${city}&country=${country}&format=json&limit=1`;
 const getWeatherUrl = (lat: string, lng: string): string => `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lng}&units=metric&exclude=minutely,hourly,alerts&appid=${WEATHER_API_KEY}`;
+const getWeatherImageUrl = (code: string): string => `https://openweathermap.org/img/wn/${code}.png`;
 
 const bot = new TelegramBot(TELEGRAM_API_KEY, {polling: true});
 
@@ -64,6 +65,7 @@ const sendCityWeatherOptions = async (id: string, city: string, country?: string
 
     const {current, week} = await getWeatherData(location.lat, location.lng);
 
+    const weekWeatherUrl = getWeatherImageUrl(week[0].weather[0].icon);
     
     bot.answerInlineQuery(id, [
             {
@@ -71,6 +73,7 @@ const sendCityWeatherOptions = async (id: string, city: string, country?: string
                 id: `${location.place}--Now`,
                 title: 'Weather -- Now',
                 description: `Current weather`,
+                thumb_url: getWeatherImageUrl(current.weather[0].icon),
                 input_message_content: {
                         message_text: `${location.place}
 ${WEATHER_TO_EMOJI[current.weather[0].main]} - <b>${Math.floor(current.temp)}°C</b>
@@ -84,6 +87,7 @@ ${WEATHER_TO_EMOJI[current.weather[0].main]} - <b>${Math.floor(current.temp)}°C
                 id:`${location.place}--Three`,
                 title: 'Weather -- 3 day',
                 description: 'Weather in the next 3 days',
+                thumb_url: weekWeatherUrl,
                 input_message_content: {
                     message_text: getWeekWeatherMessage(week.slice(0, 3)),
                     parse_mode: 'HTML',
@@ -94,6 +98,7 @@ ${WEATHER_TO_EMOJI[current.weather[0].main]} - <b>${Math.floor(current.temp)}°C
                 id:`${location.place}--Five`,
                 title: 'Weather -- 5 day',
                 description: 'Weather in the next 5 days',
+                thumb_url: weekWeatherUrl,
                 input_message_content: {
                     message_text: getWeekWeatherMessage(week.slice(0, 5)),
                     parse_mode: 'HTML',
@@ -104,6 +109,7 @@ ${WEATHER_TO_EMOJI[current.weather[0].main]} - <b>${Math.floor(current.temp)}°C
                 id:`${location.place}--Week`,
                 title: 'Weather -- Week',
                 description: 'Weather in the next 7 days',
+                thumb_url: weekWeatherUrl,
                 input_message_content: {
                     message_text: getWeekWeatherMessage(week),
                     parse_mode: 'HTML',
